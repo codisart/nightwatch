@@ -1,0 +1,25 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__.'/../vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+use Symfony\Component\Yaml\Parser;
+use Symfony\Component\Yaml\Yaml;
+
+$file = dirname(__DIR__, 1) . '/projects.yml';
+
+if (!is_file($file)) {
+    echo 'There is no configuration.';
+    return 0;
+}
+
+$yamlParser = (new Parser)
+    ->parse(file_get_contents($file), Yaml::PARSE_CONSTANT);
+
+if (!$yamlParser['projects']) {
+    echo 'There is no projects configured.';
+    return 0;
+}
+
+(new \Sentinel\Application\Factory)->create($yamlParser['projects'])->run();

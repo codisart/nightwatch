@@ -1,0 +1,19 @@
+{
+    "name": "root/sentinel",
+    "require": {
+        "symfony/console": "^3.2",
+        "guzzlehttp/guzzle": "^6.2",
+        "composer/semver": "^1.4",
+        "symfony/filesystem": "^3.2",
+        "symfony/yaml": "^3.2"
+    },
+    "require-dev": {
+          "phpunit/phpunit": "^6.1"
+    },
+    "autoload": {
+        "psr-4": {
+             "Sentinel\\": "src",
+             "NightWatch\\Client\\": "src/Client"
+        }
+    }
+}
