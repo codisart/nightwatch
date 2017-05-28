@@ -1,10 +1,10 @@
 <?php
-namespace Sentinel\Command\Factory;
+namespace NightWatch\Command\Factory;
 
 use GuzzleHttp\Client;
 use NightWatch\Client\Factory\Packagist as PackagistFactory;
 use NightWatch\Client\Factory\Gitlab as GitlabFactory;
-use Sentinel\Command\WatchCommand;
+use NightWatch\Command\WatchCommand;
 
 final class Watch
 {

@@ -1,9 +1,9 @@
 <?php
-namespace Sentinel\Application;
+namespace NightWatch\Application;
 
+use NightWatch\Command\ScanCommand;
+use NightWatch\Command\Factory\Watch as WatchFactory;
 use Symfony\Component\Console\Application;
-use Sentinel\Command\ScanCommand;
-use Sentinel\Command\Factory\Watch as WatchFactory;
 
 final class Factory
 {

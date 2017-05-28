@@ -12,8 +12,7 @@
     },
     "autoload": {
         "psr-4": {
-             "Sentinel\\": "src",
-             "NightWatch\\Client\\": "src/Client"
+             "NightWatch\\": "src"
         }
     }
 }

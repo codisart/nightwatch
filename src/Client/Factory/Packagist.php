@@ -6,10 +6,10 @@ use NightWatch\Client\Packagist as PackagistClient;
 
 final class Packagist
 {
-      public function create()
-      {
-          return new PackagistClient(
-              new Client
-          );
-      }
+    public function create()
+    {
+        return new PackagistClient(
+            new Client
+        );
+    }
 }

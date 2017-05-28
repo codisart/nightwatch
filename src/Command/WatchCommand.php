@@ -1,5 +1,5 @@
 <?php
-namespace Sentinel\Command;
+namespace NightWatch\Command;
 
 use Composer\Semver\Comparator;
 use Composer\Semver\Semver;

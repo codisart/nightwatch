@@ -1,5 +1,5 @@
 <?php
-namespace Sentinel\Command;
+namespace NightWatch\Command;
 
 use GuzzleHttp\Client;
 use NightWatch\Client\Gitlab as GitlabClient;
