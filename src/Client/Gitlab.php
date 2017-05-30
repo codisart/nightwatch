@@ -60,7 +60,7 @@ class Gitlab
         return $resultObject->packages;
     }
 
-    public function createPullRequest($branchName)
+    public function createPullRequest($branchName, $title = '', $description= '')
     {
         $result = $this->client->post(
             $this->buildApiMergeRequestUrl(),
@@ -69,7 +69,8 @@ class Gitlab
                 'form_params'    => [
                     'source_branch'	=> $branchName,
                     'target_branch' => 'master',
-                    'title' => 'Update by nightwatch',
+                    'title' => 'NightWatch Bot : ' . $title,
+                    'description' => ''
                 ]
             ]
         );
