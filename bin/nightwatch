@@ -22,4 +22,4 @@ if (!$yamlParser['projects']) {
     return 0;
 }
 
-(new \NightWatch\Application\Factory)->create($yamlParser['projects'])->run();
+(new \NightWatch\Application\Factory)($yamlParser['projects'])->run();

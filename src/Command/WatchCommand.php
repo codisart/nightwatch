@@ -41,6 +41,7 @@ class WatchCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+      die('plop');
         $this->output = $output;
         $this->output->writeln([
             'Watch',

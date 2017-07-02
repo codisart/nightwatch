@@ -8,7 +8,7 @@ use NightWatch\Command\WatchCommand;
 
 final class Watch
 {
-    public function create($config)
+    public function __invoke($config)
     {
         return new WatchCommand(
             (new PackagistFactory)->create(),
