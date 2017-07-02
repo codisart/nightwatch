@@ -6,7 +6,7 @@ use NightWatch\Client\Factory\Packagist as PackagistFactory;
 use NightWatch\Client\Factory\Gitlab as GitlabFactory;
 use NightWatch\Command\WatchCommand;
 
-final class Watch
+class Watch
 {
     public function __invoke($config)
     {

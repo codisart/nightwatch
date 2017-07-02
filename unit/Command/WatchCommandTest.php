@@ -1,9 +1,8 @@
 <?php
-namespace Sentinel\Command;
+namespace NightWatch\Command;
 
-use GuzzleHttp\Client;
 use NightWatch\Client\Packagist as PackagistClient;
-use NightWatch\Client\Gitlab as GitlabClient;
+use NightWatch\Client\Factory\Gitlab as GitlabFactory;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,8 +15,6 @@ function exec($command, &$output, &$returnValue)
 
 class WatchCommandTest extends TestCase
 {
-    private $client;
-
     private $packagistClient;
 
     private $gitlabClient;
@@ -26,9 +23,8 @@ class WatchCommandTest extends TestCase
 
     public function setUp()
     {
-        $this->client = $this->prophesize(Client::class);
         $this->packagistClient = $this->prophesize(PackagistClient::class);
-        $this->gitlabClient = $this->prophesize(GitlabClient::class);
+        $this->gitlabClient = $this->prophesize(GitlabFactory::class);
 
         $packages = [
             [
@@ -38,9 +34,9 @@ class WatchCommandTest extends TestCase
         ];
 
         $this->testedInstance = new WatchCommand(
-            $this->client->reveal(),
             $this->packagistClient->reveal(),
-            $this->gitlabClient->reveal()
+            $this->gitlabClient->reveal(),
+            []
         );
     }
 

@@ -4,7 +4,7 @@ namespace NightWatch\Client\Factory;
 use GuzzleHttp\Client;
 use NightWatch\Client\Packagist as PackagistClient;
 
-final class Packagist
+class Packagist
 {
     public function create()
     {

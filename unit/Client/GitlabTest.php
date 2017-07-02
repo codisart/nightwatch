@@ -18,7 +18,10 @@ class GitlabTest extends TestCase
         $this->client = $this->prophesize(Client::class);
 
         $this->testedInstance = new Gitlab(
-            $this->client->reveal()
+            $this->client->reveal(),
+            'url',
+            'id',
+            'token'
         );
     }
 
@@ -85,6 +88,6 @@ JSON;
     {
         $this->client->post(Argument::type('string'), Argument::type('array'))->shouldBeCalled();
 
-        $this->testedInstance->createPullRequest('master');
+        $this->testedInstance->createPullRequest('master', '', '');
     }
 }

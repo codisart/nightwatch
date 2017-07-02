@@ -5,7 +5,7 @@ use Dotenv\Dotenv;
 use GuzzleHttp\Client;
 use NightWatch\Client\Gitlab as GitlabClient;
 
-final class Gitlab
+class Gitlab
 {
       public function create(
           $baseUrl,
