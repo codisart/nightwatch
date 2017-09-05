@@ -2,6 +2,7 @@
 namespace NightWatch\Client;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 
 class Gitlab
 {
@@ -30,6 +31,11 @@ class Gitlab
     private function buildApiMergeRequestUrl()
     {
         return $this->buildApiBaseUrl() . '/merge_requests';
+    }
+
+    private function buildApibrancheUrl($branchName)
+    {
+        return $this->buildApiBaseUrl() . '/repository/branches/' . $branchName;
     }
 
     public function getComposerRequiredPackages()
@@ -62,7 +68,7 @@ class Gitlab
 
     public function createPullRequest($branchName, $title = '', $description= '')
     {
-        $result = $this->client->post(
+        $this->client->post(
             $this->buildApiMergeRequestUrl(),
             [
                 'headers' => ['PRIVATE-TOKEN' => $this->privateToken],
@@ -74,5 +80,24 @@ class Gitlab
                 ]
             ]
         );
+    }
+
+    public function doesBranchExist($branchName)
+    {
+        try {
+            $this->client->get(
+                $this->buildApibrancheUrl(urlencode($branchName)),
+                [
+                    'headers' => ['PRIVATE-TOKEN' => $this->privateToken],
+                ]
+            );
+        }
+        catch (ClientException $exception) {
+            if ($exception->getCode() == 404) {
+                return false;
+            }
+            throw $exception;
+        }
+        return true;
     }
 }
