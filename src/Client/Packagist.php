@@ -1,6 +1,7 @@
 <?php
 namespace NightWatch\Client;
 
+use Composer\Semver\Comparator;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 
@@ -32,11 +33,17 @@ class Packagist
         if (!isset($resultObject->package->versions)) {
             return null;
         }
-        foreach ($resultObject->package->versions as $key => $value) {
-            if (!strstr($value->version, 'dev')) {
-                return $value->version;
+
+        $maxVersion = null;
+        foreach ($resultObject->package->versions as $value) {
+            $version = $value->version;
+            if (false === strpos($version, 'dev')
+                && ($maxVersion === null || Comparator::greaterThan($version, $maxVersion))
+            ) {
+                $maxVersion = $version;
             }
         }
-        return null;
+
+        return $maxVersion;
     }
 }
