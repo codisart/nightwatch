@@ -3,21 +3,30 @@ namespace NightWatch\Command;
 
 use Composer\Semver\Comparator;
 use Composer\Semver\Semver;
-use GuzzleHttp\Client;
-use GuzzleHttp\Message\ResponseInterface;
 use NightWatch\Client\Packagist as PackagistClient;
 use NightWatch\Client\Factory\Gitlab as GitlabFactory;
+use NightWatch\Client\Gitlab as GitlabClient;
+use NightWatch\Container\Manager;
+use NightWatch\Service\Package\Update;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class WatchCommand extends Command
 {
-    private $client;
-
     private $packagistClient;
 
     private $gitlabFactory;
+
+    /**
+     * @var array
+     */
+    private $projects;
+
+    /**
+     * @var array
+     */
+    private $lockedPackages;
 
     public function __construct(
         PackagistClient $packagistClient,
@@ -41,155 +50,68 @@ class WatchCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-      die('plop');
-        $this->output = $output;
-        $this->output->writeln([
+        $output->writeln([
             'Watch',
             '============',
-            '',
         ]);
 
-        foreach ($this->projects as $projectName => $project) {
+        $containerManager = new Manager;
+
+        foreach ($this->projects as $project) {
+            $gitlabConfig = $project['gitlab'];
+
             $gitlabClient = $this->gitlabFactory->create(
-                $project['gitlab']['api_base_url'],
-                $project['gitlab']['project_id'],
-                $project['gitlab']['private_token']
+                $gitlabConfig['api_base_url'],
+                $gitlabConfig['project_id'],
+                $gitlabConfig['private_token']
             );
 
-            $requiredPackages = $gitlabClient->getComposerRequiredPackages();
-            $lockedPackages = $gitlabClient->getComposerLockedPackages();
-
-            $requiredPackages = array_merge(
-                (array) $requiredPackages->require,
-                (array) $requiredPackages->{'require-dev'}
+            $updateService = new Update(
+                $containerManager,
+                $gitlabClient
             );
+
+            $requiredPackages = $this->getRequiredPackages($gitlabClient);
 
             foreach ($requiredPackages as $package => $requiredVersion) {
-                $lockedVersion = null;
-                foreach ($lockedPackages as $lockedPackage) {
-                    if (strtolower($lockedPackage->name) == strtolower($package)) {
-                        $lockedVersion = $lockedPackage->version;
-                    }
-                }
+                $lockedVersion = $this->getLockedVersion($package, $gitlabClient);
 
                 $latestVersion = $this->packagistClient->getLatestVersion($package);
 
-                if (isset($lockedVersion)
-                    && isset($latestVersion)
-                    && Semver::satisfies($latestVersion, $requiredVersion)
+                if (!isset($lockedVersion, $latestVersion)) {
+                    continue;
+                }
+
+                if (Semver::satisfies($latestVersion, $requiredVersion)
                     && Comparator::greaterThan($latestVersion, $lockedVersion)
                 ) {
-                    var_dump($package, $lockedVersion, $latestVersion);
-                    try {
-                        $this->cloneProject($project['gitlab']['clone_url']);
-                        $this->updateComposerPackage($package);
-
-                        $branchName = sprintf('update-%s-%s', str_replace('/', '-', $package), $latestVersion);
-                        $this->createBranch($branchName);
-                        $this->commitUpdate();
-                        $this->pushUpdate($branchName);
-
-                        $gitlabClient->createPullRequest(
-                          $branchName,
-                          sprintf('Update of %s to version %s', $package,  $latestVersion),
-                          'This pull request update automatically a composer dependency following the requirement of composer.json'
-                        );
-                    }
-                    catch(\Exception $e) {
-                        $this->clearTempFolderPath();
-                        $this->output->writeln([$e->getMessage()]);
-                        if ($e->getPrevious()) {
-                            $this->output->writeln([$e->getPrevious()->getMessage()]);
-                        }
-                    }
+                    $updateService('composer:7.1', $package, $latestVersion);
                 }
             }
         }
+
+        $containerManager->cleanUp();
     }
 
-    private function clearTempFolderPath() {
-        $tempFolderPath = dirname(__DIR__, 2) . '/tmp';
+    private function getLockedVersion($package, GitlabClient $gitlabClient)
+    {
+        $this->lockedPackages = $gitlabClient->getComposerLockedPackages();
 
-        try {
-            $this->runCommand('rm -rf ' . $tempFolderPath);
-        }
-        catch (\RuntimeException $e) {
-            throw new \Exception(sprintf('The clone of the project failed.', null, $e));
-        }
-    }
-
-    private function getTempFolderPath() {
-        $tempFolderPath = dirname(__DIR__, 2) . '/tmp';
-
-        if (!is_dir($tempFolderPath)) {
-            if(!mkdir($tempFolderPath)) {
-                throw new \Exception(sprintf('Can not create tempory folder at the location %s.', $tempFolderPath));
+        foreach ($this->lockedPackages as $lockedPackage) {
+            if (strtolower($lockedPackage->name) === strtolower($package)) {
+                return $lockedPackage->version;
             }
         }
-        return $tempFolderPath;
+        return null;
     }
 
-    private function cloneProject($cloneUrl)
+    private function getRequiredPackages(GitlabClient $gitlabClient)
     {
-        chdir($this->getTempFolderPath());
+        $requiredPackages = $gitlabClient->getComposerRequiredPackages();
 
-        try {
-            $this->runCommand('git clone ' . $cloneUrl . ' project');
-        }
-        catch (\RuntimeException $e) {
-            throw new \Exception('The clone of the project failed.', null, $e);
-        }
-
-        chdir($this->getTempFolderPath() . '/project');
-    }
-
-    private function updateComposerPackage($packageName)
-    {
-        try {
-            $this->runCommand('composer update --quiet ' . $packageName);
-        }
-        catch (\RuntimeException $e) {
-            throw new \Exception('Update of package failed.', null, $e);
-        }
-    }
-
-    private function createBranch($branchName)
-    {
-        $this->output->writeln(['Create branch']);
-        try {
-            $this->runCommand('git checkout -b ' . $branchName);
-        }
-        catch (\RuntimeException $e) {
-            throw new \Exception('Failed branch creation.', null, $e);
-        }
-    }
-
-    private function commitUpdate()
-    {
-        try {
-            $this->runCommand('git commit --all --no-verify -m "UD-0000 nightwatch"');
-        }
-        catch (\RuntimeException $e) {
-            throw new \Exception('Nothing to commit.', null, $e);
-        }
-    }
-
-    private function pushUpdate($branchName)
-    {
-        try {
-            $this->runCommand('git push --no-verify -u origin ' . $branchName);
-        }
-        catch (\RuntimeException $e) {
-            throw new \Exception('Nothing to push.', null, $e);
-        }
-    }
-
-    private function runCommand($command)
-    {
-        exec($command, $output, $returnValue);
-        if ($returnValue !== 0) {
-            throw new \RuntimeException(implode("\r\n", $output));
-        }
-        return $output;
+        return array_merge(
+            (array) $requiredPackages->require,
+            (array) $requiredPackages->{'require-dev'}
+        );
     }
 }

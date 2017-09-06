@@ -78,11 +78,6 @@ class Instance
             )
         );
 
-        echo sprintf(
-            'docker exec -it %s sh -c "cd project && php composer.phar update --quiet %s"',
-            $this->image,
-            $package
-        ) . "\n";
         $this->runCommand(
             sprintf(
                 'docker exec -it %s sh -c "cd project && php composer.phar update --quiet %s"',

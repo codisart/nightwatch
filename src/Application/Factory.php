@@ -4,7 +4,7 @@ namespace NightWatch\Application;
 use NightWatch\Command\Factory\Watch as WatchFactory;
 use Symfony\Component\Console\Application;
 
-final class Factory
+class Factory
 {
     public function __invoke($config)
     {
@@ -13,7 +13,7 @@ final class Factory
         $application = new Application;
         $application->add($nightwatchCommand);
         $application->setDefaultCommand($nightwatchCommand->getName(), true);
-        
+
         return $application;
     }
 }
