@@ -48,8 +48,7 @@ class Gitlab
             ]
         );
 
-        $resultObject = json_decode($result->getBody()->getContents());
-        return $resultObject;
+        return json_decode($result->getBody()->getContents());
     }
 
     public function getComposerLockedPackages()
@@ -62,8 +61,7 @@ class Gitlab
             ]
         );
 
-        $resultObject = json_decode($result->getBody()->getContents());
-        return $resultObject->packages;
+        return json_decode($result->getBody()->getContents())->packages;
     }
 
     public function createPullRequest($branchName, $title = '', $description= '')
