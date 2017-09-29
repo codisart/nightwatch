@@ -9,7 +9,7 @@
  * @author      Matters Studio (https://matters.tech)
  */
 
-namespace NightWatch\Project;
+namespace NightWatch\PackageManager;
 
 use NightWatch\Client\Gitlab as GitlabClient;
 
@@ -27,7 +27,7 @@ class Composer
         $this->gitlabClient = $gitlabClient;
     }
 
-    public function getRequiredPackages()
+    public function getRequiredPackages() : array
     {
         $requiredPackages = $this->gitlabClient->getComposerRequiredPackages();
 

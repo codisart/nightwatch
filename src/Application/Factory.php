@@ -3,6 +3,7 @@
 namespace NightWatch\Application;
 
 use NightWatch\Command\Factory\Watch as WatchFactory;
+use NightWatch\Command\TestCommand;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
@@ -22,7 +23,8 @@ class Factory
 
         $application = new Application;
         $application->add($nightwatchCommand);
-        $application->setDefaultCommand($nightwatchCommand->getName(), true);
+        $application->add(new TestCommand);
+        $application->setDefaultCommand($nightwatchCommand->getName(), false);
 
         return $application;
     }
