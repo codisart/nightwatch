@@ -7,6 +7,8 @@ use NightWatch\Client\Packagist as PackagistClient;
 use NightWatch\Client\Factory\Gitlab as GitlabFactory;
 use NightWatch\Client\Gitlab as GitlabClient;
 use NightWatch\Container\Manager;
+use NightWatch\Package;
+use NightWatch\Project\Composer;
 use NightWatch\Service\Package\Update;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -71,11 +73,14 @@ class WatchCommand extends Command
                 $gitlabClient
             );
 
-            $requiredPackages = $this->getRequiredPackages($gitlabClient);
+            $composer = new Composer(
+                $gitlabClient
+            );
+
+            $requiredPackages = $composer->getRequiredPackages();
 
             foreach ($requiredPackages as $package => $requiredVersion) {
-                $lockedVersion = $this->getLockedVersion($package, $gitlabClient);
-
+                $lockedVersion = $composer->getLockedVersion($package);
                 $latestVersion = $this->packagistClient->getLatestVersion($package);
 
                 if (!isset($lockedVersion, $latestVersion)) {
@@ -91,27 +96,5 @@ class WatchCommand extends Command
         }
 
         $containerManager->cleanUp();
-    }
-
-    private function getLockedVersion($package, GitlabClient $gitlabClient)
-    {
-        $this->lockedPackages = $gitlabClient->getComposerLockedPackages();
-
-        foreach ($this->lockedPackages as $lockedPackage) {
-            if (strtolower($lockedPackage->name) === strtolower($package)) {
-                return $lockedPackage->version;
-            }
-        }
-        return null;
-    }
-
-    private function getRequiredPackages(GitlabClient $gitlabClient)
-    {
-        $requiredPackages = $gitlabClient->getComposerRequiredPackages();
-
-        return array_merge(
-            (array) $requiredPackages->require,
-            (array) $requiredPackages->{'require-dev'}
-        );
     }
 }

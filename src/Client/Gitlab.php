@@ -38,6 +38,11 @@ class Gitlab
         return $this->buildApiBaseUrl() . '/repository/branches/' . $branchName;
     }
 
+    public function getComposerJsonFile()
+    {
+        return $this->getComposerRequiredPackages();
+    }
+
     public function getComposerRequiredPackages()
     {
         $result = $this->client->get(
